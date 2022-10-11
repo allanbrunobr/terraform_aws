@@ -14,6 +14,7 @@ resource "aws_vpc" "main" {
 
 
 resource "aws_subnet" "public" {
+
   count = length(local.public_cidr)
   vpc_id     = aws_vpc.main.id
 
