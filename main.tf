@@ -1,11 +1,6 @@
-locals {
-  public_cidr: ["10.0.0.0/24","10.0.1.0/24"]
-  private_cidr: ["10.0.2.0/24","10.0.3.0/24"]
-}
-
 resource "aws_vpc" "main" {
 
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr
 
   tags = {
     Name = var.env_code
@@ -15,10 +10,10 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "public" {
 
-  count = length(local.public_cidr)
+  count = length(var.public_cidr)
   vpc_id     = aws_vpc.main.id
 
-  cidr_block = local.public_cidr[count.index]
+  cidr_block = var.public_cidr[count.index]
 
   tags = {
     Name = "${var.env_code}-public${count.index}"
@@ -28,10 +23,10 @@ resource "aws_subnet" "public" {
 
 
 resource "aws_subnet" "private" {
-  count = length(local.private_cidr)
+  count = length(var.private_cidr)
   vpc_id     = aws_vpc.main.id
 
-  cidr_block = local.private_cidr[count.index]
+  cidr_block = var.private_cidr[count.index]
 
   tags = {
     Name = "${var.env_code}-private${count.index}"
@@ -48,7 +43,7 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_eip" "nat" {
-  count = length(local.public_cidr)
+  count = length(var.public_cidr)
 
   vpc = true
 
@@ -59,7 +54,7 @@ resource "aws_eip" "nat" {
 
 
 resource "aws_nat_gateway" "main" {
-  count = length(local.public_cidr)
+  count = length(var.public_cidr)
 
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
@@ -88,7 +83,7 @@ resource "aws_route_table" "public" {
 
 
 resource "aws_route_table" "private" {
-  count = length(local.private_cidr)
+  count = length(var.private_cidr)
 
   vpc_id = aws_vpc.main.id
 
@@ -106,7 +101,7 @@ resource "aws_route_table" "private" {
 
 
 resource "aws_route_table_association" "public" {
-  count = length(local.public_cidr)
+  count = length(var.public_cidr)
 
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
@@ -116,7 +111,7 @@ resource "aws_route_table_association" "public" {
 
 
 resource "aws_route_table_association" "private" {
-  count = length(local.private_cidr)
+  count = length(var.private_cidr)
 
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
