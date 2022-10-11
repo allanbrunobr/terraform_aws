@@ -52,7 +52,6 @@ resource "aws_eip" "nat" {
   }
 }
 
-
 resource "aws_nat_gateway" "main" {
   count = length(var.public_cidr)
 
